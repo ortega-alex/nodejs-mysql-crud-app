@@ -1,43 +1,44 @@
 const express = require("express");
 const router = express.Router();
-
 const pool = require('../config/database');
+const { isLoggedIn } = require('../lib/auth');
 
-router.get('/add', (req, res) => {
+router.get('/add', isLoggedIn, (req, res) => {
     res.render('links/add');
 });
 
-router.post('/add', async (req, res) => {
+router.post('/add', isLoggedIn, async (req, res) => {
     const { title, url, description } = req.body;
     const newLink = {
         title,
         url,
-        description
+        description,
+        user_id: req.user.id
     };
     await pool.query("INSERT INTO links SET ?", [newLink]);
-    req.flash("success" , 'link saved successfully');
+    req.flash("success", 'link saved successfully');
     res.redirect('/links');
 });
 
-router.get('/', async (req, res) => {
-    const links = await pool.query("SELECT * FROM links");
+router.get('/', isLoggedIn, async (req, res) => {
+    const links = await pool.query("SELECT * FROM links WHERE user_id = ?", [req.user.id]);
     res.render('links/list', { links });
 });
 
-router.get('/delete/:id', async (req, res) => {
+router.get('/delete/:id', isLoggedIn, async (req, res) => {
     const { id } = req.params;
     await pool.query("DELETE FROM links WHERE ID = ?", [id]);
-    req.flash("success" , 'link remove successfully');
+    req.flash("success", 'link remove successfully');
     res.redirect('/links');
 });
 
-router.get('/edit/:id', async (req, res) => {
+router.get('/edit/:id', isLoggedIn, async (req, res) => {
     const { id } = req.params;
     const links = await pool.query("SELECT * FROM links WHERE id = ?", [id]);
-    res.render('links/edit', { link : links[0]});
+    res.render('links/edit', { link: links[0] });
 });
 
-router.post('/edit/:id', async (req, res) => {
+router.post('/edit/:id', isLoggedIn, async (req, res) => {
     const { id } = req.params;
     const { title, url, description } = req.body;
     const newLink = {
@@ -45,8 +46,8 @@ router.post('/edit/:id', async (req, res) => {
         url,
         description
     };
-    await pool.query("UPDATE links SET ? WHERE id = ?", [newLink , id]);
-    req.flash("success" , 'link Updated successfully');
+    await pool.query("UPDATE links SET ? WHERE id = ?", [newLink, id]);
+    req.flash("success", 'link Updated successfully');
     res.redirect('/links');
 });
 
