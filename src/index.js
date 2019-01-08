@@ -7,37 +7,37 @@ const path = require('path');
 const app = express();
 
 //settings
-app.set('port' , process.env.PORT || 3000);
-app.set('views' , path.join(__dirname , 'views'))
-app.engine('.hbs' , exphbs({
-    defaultLayout: 'main' ,
-    layoutsDir: path.join(app.get('views') , 'layouts'),
-    partialsDir: path.join(app.get('views') , 'partials'),
+app.set('port', process.env.PORT || 3000);
+app.set('views', path.join(__dirname, 'views'));
+app.engine('.hbs', exphbs({
+    defaultLayout: 'main',
+    partialsDir: path.join(app.get('views'), 'partials'),
+    layoutsDir: path.join(app.get('views'), 'layouts'),
     extname: '.hbs',
-    handlebars: require('./lib/handlebars')
+    helpers: require('./lib/handlebars')
 }));
-app.set('view engine' , '.hbs')
+app.set('view engine', '.hbs');
 
 //middlewares
 app.use(morgan("dev"));
-app.use(express.urlencoded({'extended' : false}));
+app.use(express.urlencoded({ 'extended': false }));
 app.use(express.json());
 
 //global varibles
-app.use((req , res , next) => {
-    
+app.use((req, res, next) => {
+
     next();
 });
 
 //routes
 app.use(require('./routes'));
 app.use(require('./routes/authentication'));
-app.use('/links' , require('./routes/links'));
+app.use('/links', require('./routes/links'));
 
 //public 
-app.use(express.static(path.join(__dirname , 'public')))
+app.use(express.static(path.join(__dirname, 'public')))
 
 //starting the server
-app.listen(app.get('port') , () => {
+app.listen(app.get('port'), () => {
     console.log(`server on port ${app.get('port')}`);
 });
